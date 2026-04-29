@@ -24,7 +24,7 @@ contract FundMe {
     address[] public s_funders;
     mapping(address => uint256) public s_addressToAmountFunded;
 
-    address public immutable I_OWNER;
+    address private immutable I_OWNER;
     // 21,508 gas - immutable
     // 23,644 - non-immutable
 
@@ -48,6 +48,10 @@ contract FundMe {
         return s_priceFeed.version();
     }
 
+    function getOwner() public view returns (address) {
+        return I_OWNER;
+    }
+
     function fund() public payable {
         // Alow user to send $
         // Have a minimun sent $5
@@ -60,7 +64,9 @@ contract FundMe {
     }
 
     function withdraw() public onlyOwner {
-        for (uint256 id = 0; id < s_funders.length; id++) {
+        // To save more gas, we SSLOAD s_funder.length only 1 times
+        uint256 s_fundersLength = s_funders.length;
+        for (uint256 id = 0; id < s_fundersLength; id++) {
             address funder = s_funders[id];
             s_addressToAmountFunded[funder] = 0;
         }
@@ -117,7 +123,7 @@ contract FundMe {
         return s_addressToAmountFunded[funderAddress];
     }
 
-    function getFunders(uint256 index) external view returns (address) {
+    function getFunder(uint256 index) external view returns (address) {
         return s_funders[index];
     }
 }
